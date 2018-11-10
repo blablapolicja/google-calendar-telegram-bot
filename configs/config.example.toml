@@ -1,0 +1,19 @@
+[database]
+username = "mysql_username"
+password = "mysql_password"
+database = "mysql_database"
+host = "127.0.0.1"
+port = 3306
+debug = true
+
+[server]
+port = 8080
+
+[bot]
+token = "telegram_bot_token"
+debug = true
+
+[oauth]
+client_id = "google_console_client_id"
+client_secret = "google_console_client_secret"
+redirect_url = "http://127.0.0.1:8080/oauthCallback"
