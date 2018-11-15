@@ -27,7 +27,7 @@ func NewMessageParser() *messageParser {
 	return &messageParser{}
 }
 
-// ParseMessage parses message from client
+// ParseMessage parses message from user
 func (mp *messageParser) ParseMessage(m *tgbotapi.Message) *Command {
 	return newCommand(Authorise, m.Chat.ID)
 }

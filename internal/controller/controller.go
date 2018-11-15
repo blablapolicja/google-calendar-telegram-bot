@@ -24,8 +24,14 @@ func (c *Controller) HandleOauthCallback(w http.ResponseWriter, r *http.Request)
 	switch r.Method {
 	case http.MethodGet:
 		query := r.URL.Query()
+		state := query["state"]
+		code := query["code"]
 
-		c.logger.Printf("Oauth callback is called with code %s and state %s", query["code"], query["state"])
+		c.logger.Printf("Oauth callback is called with code %s and state %s", code, state)
+
+		if len(state) == 1 && len(code) == 1 {
+			c.botManager.FinishAuth(query["state"][0], query["code"][0])
+		}
 	default:
 		c.logger.Warnf("HandleOauthCallback was called with wrong method: %s", r.Method)
 		http.Error(w, "", http.StatusMethodNotAllowed)

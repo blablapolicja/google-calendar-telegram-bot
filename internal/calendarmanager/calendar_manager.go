@@ -12,7 +12,12 @@ func NewCalendarManager(config *oauth2.Config) *CalendarManager {
 	return &CalendarManager{config}
 }
 
-// InitAuth - authorize user
-func (m *CalendarManager) InitAuth() string {
-	return m.config.AuthCodeURL("random-state-string")
+// GetAuthCodeURL - authorize user
+func (m *CalendarManager) GetAuthCodeURL(state string) string {
+	return m.config.AuthCodeURL(state)
+}
+
+// GetToken - get oauth2 token from code
+func (m *CalendarManager) GetToken(code string) (*oauth2.Token, error) {
+	return m.config.Exchange(oauth2.NoContext, code)
 }
