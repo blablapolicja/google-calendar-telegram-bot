@@ -1,10 +1,7 @@
-[database]
-username = "mysql_username"
-password = "mysql_password"
-database = "mysql_database"
-host = "127.0.0.1"
-port = 3306
-debug = true
+[redis]
+address = "127.0.0.1:6379"
+password = "redis_password"
+database = 0
 
 [server]
 port = 8080

@@ -2,14 +2,11 @@ package config
 
 import "github.com/spf13/viper"
 
-// DatabaseConf - database configuration
-type DatabaseConf struct {
-	Username string `mapstructure:"username"`
+// RedisConf - Redis configuration
+type RedisConf struct {
+	Address  string `mapstructure:"address"`
 	Password string `mapstructure:"password"`
-	Database string `mapstructure:"database"`
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
-	Debug    bool   `mapstructure:"debug"`
+	Database int    `mapstructure:"database"`
 }
 
 // ServerConf - server configuration
@@ -31,8 +28,8 @@ type OauthConf struct {
 }
 
 var (
-	// DatabaseConfig - database configuration
-	DatabaseConfig DatabaseConf
+	// RedisConfig - Redis configuration
+	RedisConfig RedisConf
 
 	// ServerConfig - server configuration
 	ServerConfig ServerConf
@@ -53,12 +50,12 @@ func Init() error {
 		return err
 	}
 
-	databaseConfig := viper.Sub("database")
+	redisConfig := viper.Sub("redis")
 	serverConfig := viper.Sub("server")
 	botConfig := viper.Sub("bot")
 	oauthConfig := viper.Sub("oauth")
 
-	if err := databaseConfig.Unmarshal(&DatabaseConfig); err != nil {
+	if err := redisConfig.Unmarshal(&RedisConfig); err != nil {
 		return err
 	}
 

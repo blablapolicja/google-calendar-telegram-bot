@@ -1,10 +1,9 @@
 package botmanager
 
 import (
-	"strconv"
-
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/calendarmanager"
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/config"
+	"github.com/blablapolicja/google-calendar-telegram-bot/internal/repositories"
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/util"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
@@ -21,8 +20,8 @@ type BotManager struct {
 	messageParser          *messageParser
 	messageComposer        *messageComposer
 	calendarManager        *calendarmanager.CalendarManager
-	authorizedUsersCache   *cache.Cache
 	unauthorizedUsersCache *cache.Cache
+	tokenRepository        *repositories.TokenRepository
 }
 
 // NewBotManager creates new BotManager
@@ -33,18 +32,18 @@ func NewBotManager(
 	messageParser *messageParser,
 	messageComposer *messageComposer,
 	calendarManager *calendarmanager.CalendarManager,
-	authorizedUsersCache *cache.Cache,
 	unauthorizedUsersCache *cache.Cache,
+	tokenRepository *repositories.TokenRepository,
 ) *BotManager {
 	return &BotManager{
-		config:                 config,
-		logger:                 logger,
-		botAPI:                 botAPI,
-		messageParser:          messageParser,
-		messageComposer:        messageComposer,
-		calendarManager:        calendarManager,
-		authorizedUsersCache:   authorizedUsersCache,
-		unauthorizedUsersCache: unauthorizedUsersCache,
+		config,
+		logger,
+		botAPI,
+		messageParser,
+		messageComposer,
+		calendarManager,
+		unauthorizedUsersCache,
+		tokenRepository,
 	}
 }
 
@@ -91,9 +90,7 @@ func (b *BotManager) startAuth(userID int64) {
 
 	b.unauthorizedUsersCache.Set(state, userID, cache.DefaultExpiration)
 
-	_, err := b.botAPI.Send(message)
-
-	if err != nil {
+	if _, err := b.botAPI.Send(message); err != nil {
 		b.logger.Errorf("Error while sending authorization link to user %s", err.Error())
 		return
 	}
@@ -119,7 +116,11 @@ func (b *BotManager) FinishAuth(state string, code string) {
 	}
 
 	b.unauthorizedUsersCache.Delete(state)
-	b.authorizedUsersCache.Set(strconv.FormatInt(userID, 10), token, cache.DefaultExpiration)
+
+	if err := b.tokenRepository.Save(userID, token); err != nil {
+		b.logger.Errorf("Error while saving Oauth token: %s", err.Error())
+		return
+	}
 
 	message := tgbotapi.NewMessage(userID, "You have been successfully authorized!")
 

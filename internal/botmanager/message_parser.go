@@ -5,7 +5,7 @@ import "github.com/go-telegram-bot-api/telegram-bot-api"
 // Operation represents command that was generated from user's message
 type Operation struct {
 	operationType int
-	userID      int64
+	userID        int64
 }
 
 func newOperation(operationType int, userID int64) *Operation {

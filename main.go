@@ -10,7 +10,8 @@ import (
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/calendarmanager"
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/config"
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/controller"
-	"github.com/blablapolicja/google-calendar-telegram-bot/internal/database"
+	"github.com/blablapolicja/google-calendar-telegram-bot/internal/redisstorage"
+	"github.com/blablapolicja/google-calendar-telegram-bot/internal/repositories"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/patrickmn/go-cache"
@@ -43,16 +44,10 @@ func main() {
 		}
 	}
 
-	dbConnection, err := database.NewDatabaseConn(config.DatabaseConfig)
+	redisClient, err := redisstorage.NewRedisClient(config.RedisConfig)
 
 	if err != nil {
-		log.Fatalf("Can't connect to database: %s", err.Error())
-	}
-
-	log.WithField("logger", "init").Infof("Connected to database: %s:%d", config.DatabaseConfig.Host, config.DatabaseConfig.Port)
-
-	if err := database.CreateTables(dbConnection); err != nil {
-		log.Fatalf("Can't create tables in database: %s", err.Error())
+		log.Fatalf("Can't create Redis client: %s", err.Error())
 	}
 
 	googleOauthConfig := &oauth2.Config{
@@ -66,8 +61,8 @@ func main() {
 	messageParser := botmanager.NewMessageParser()
 	messageComposer := botmanager.NewMessageComposer()
 	calendarManager := calendarmanager.NewCalendarManager(googleOauthConfig)
-	authorizedUsersCache := cache.New(0, 0)
 	unauthorizedUsersCache := cache.New(time.Minute, 5*time.Minute)
+	tokenRepository := repositories.NewTokenRepository(redisClient)
 	botManager := botmanager.NewBotManager(
 		config.BotConfig,
 		botManagerLogger,
@@ -75,8 +70,8 @@ func main() {
 		messageParser,
 		messageComposer,
 		calendarManager,
-		authorizedUsersCache,
 		unauthorizedUsersCache,
+		tokenRepository,
 	)
 
 	go func() {
