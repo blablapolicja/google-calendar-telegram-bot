@@ -5,8 +5,8 @@ import (
 	"math/rand"
 )
 
-// GetRandomStateString returns random string
-func GetRandomStateString() string {
+// GenerateStateString returns random string
+func GenerateStateString() string {
 	b := make([]byte, 32)
 
 	rand.Read(b)

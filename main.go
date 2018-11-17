@@ -17,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/calendar/v3"
 )
 
 func main() {
@@ -49,10 +50,11 @@ func main() {
 		ClientSecret: config.OauthConfig.ClientSecret,
 		Endpoint:     google.Endpoint,
 		RedirectURL:  config.OauthConfig.RedirectURL,
-		Scopes:       []string{"https://www.googleapis.com/auth/calendar"},
+		Scopes:       []string{calendar.CalendarScope, calendar.CalendarEventsScope},
 	}
 	botManagerLogger := log.WithField("logger", "bot_manager")
 	messageParser := botmanager.NewMessageParser()
+	messageComposer := botmanager.NewMessageComposer()
 	calendarManager := calendarmanager.NewCalendarManager(googleOauthConfig)
 	authorizedUsersCache := cache.New(0, 0)
 	unauthorizedUsersCache := cache.New(time.Minute, 5*time.Minute)
@@ -61,6 +63,7 @@ func main() {
 		botManagerLogger,
 		botAPI,
 		messageParser,
+		messageComposer,
 		calendarManager,
 		authorizedUsersCache,
 		unauthorizedUsersCache,
