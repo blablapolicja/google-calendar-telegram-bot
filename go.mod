@@ -5,7 +5,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/go-redis/redis v6.14.2+incompatible
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
-	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/onsi/gomega v1.4.2 // indirect
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.2.1
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect

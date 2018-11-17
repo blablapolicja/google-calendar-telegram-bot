@@ -11,27 +11,30 @@ import (
 // TokenRepository represents repository for saving and retrieving Google Calendar tokens in Redis
 type TokenRepository struct {
 	redisClient *redis.Client
+	prefix      string
 }
 
 // NewTokenRepository creates new TokenRepository
 func NewTokenRepository(redisClient *redis.Client) *TokenRepository {
-	return &TokenRepository{redisClient}
+	prefix := "ID_"
+
+	return &TokenRepository{redisClient, prefix}
 }
 
 // Save serializes and saves token in Redis
-func (u *TokenRepository) Save(ID int64, token *oauth2.Token) error {
+func (r *TokenRepository) Save(ID int64, token *oauth2.Token) error {
 	serialized, err := json.Marshal(token)
 
 	if err != nil {
 		return err
 	}
 
-	return u.redisClient.Set("ID_"+strconv.FormatInt(ID, 10), serialized, 0).Err()
+	return r.redisClient.Set(r.prefix+strconv.FormatInt(ID, 10), serialized, 0).Err()
 }
 
 // Get gets token from Redis and deserializes it
-func (u *TokenRepository) Get(ID int64) (*oauth2.Token, error) {
-	serializedToken, err := u.redisClient.Get("ID_" + strconv.FormatInt(ID, 10)).Result()
+func (r *TokenRepository) Get(ID int64) (*oauth2.Token, error) {
+	serializedToken, err := r.redisClient.Get(r.prefix + strconv.FormatInt(ID, 10)).Result()
 
 	if err != nil {
 		return nil, err

@@ -6,22 +6,22 @@ import (
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/repositories"
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/util"
 
+	"github.com/go-redis/redis"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 )
 
 // BotManager represents Bot Manager
 type BotManager struct {
-	config                 config.BotConf
-	logger                 *log.Entry
-	botAPI                 *tgbotapi.BotAPI
-	messageParser          *messageParser
-	messageComposer        *messageComposer
-	calendarManager        *calendarmanager.CalendarManager
-	unauthorizedUsersCache *cache.Cache
-	tokenRepository        *repositories.TokenRepository
+	config           config.BotConf
+	logger           *log.Entry
+	botAPI           *tgbotapi.BotAPI
+	messageParser    *messageParser
+	messageComposer  *messageComposer
+	calendarManager  *calendarmanager.CalendarManager
+	userIDRepository *repositories.UserIDRepository
+	tokenRepository  *repositories.TokenRepository
 }
 
 // NewBotManager creates new BotManager
@@ -32,7 +32,7 @@ func NewBotManager(
 	messageParser *messageParser,
 	messageComposer *messageComposer,
 	calendarManager *calendarmanager.CalendarManager,
-	unauthorizedUsersCache *cache.Cache,
+	userIDRepository *repositories.UserIDRepository,
 	tokenRepository *repositories.TokenRepository,
 ) *BotManager {
 	return &BotManager{
@@ -42,7 +42,7 @@ func NewBotManager(
 		messageParser,
 		messageComposer,
 		calendarManager,
-		unauthorizedUsersCache,
+		userIDRepository,
 		tokenRepository,
 	}
 }
@@ -89,7 +89,10 @@ func (b *BotManager) startAuth(userID int64) {
 	message := tgbotapi.NewMessage(userID, "Open this [link]("+authURL+") to connect your Google Calendar (link will expire in 1 minute)")
 	message.ParseMode = tgbotapi.ModeMarkdown
 
-	b.unauthorizedUsersCache.Set(state, userID, cache.DefaultExpiration)
+	if err := b.userIDRepository.Save(state, userID); err != nil {
+		b.logger.Errorf("Error while saving user ID %s", err.Error())
+		return
+	}
 
 	if _, err := b.botAPI.Send(message); err != nil {
 		b.logger.Errorf("Error while sending authorization link to user %s", err.Error())
@@ -101,22 +104,28 @@ func (b *BotManager) startAuth(userID int64) {
 
 // FinishAuth saves client oauth2 token
 func (b *BotManager) FinishAuth(state string, code string) {
-	value, found := b.unauthorizedUsersCache.Get(state)
+	userID, err := b.userIDRepository.Get(state)
 
-	if !found {
-		b.logger.Warnf("User with state %s and code %s was not found", state, code)
+	if err == redis.Nil {
+		b.logger.Warnf("User with state %s was not found", state)
 		return
 	}
 
-	userID := value.(int64)
+	if err != nil {
+		b.logger.Errorf("Error while getting user ID: %s", err.Error())
+		return
+	}
+
+	if err := b.userIDRepository.Delete(state); err != nil {
+		b.logger.Errorf("Error while deleting user ID %s", err.Error())
+	}
+
 	token, err := b.calendarManager.CreateToken(code)
 
 	if err != nil {
 		b.logger.Errorf("Error while getting Oauth token: %s", err.Error())
 		return
 	}
-
-	b.unauthorizedUsersCache.Delete(state)
 
 	if err := b.tokenRepository.Save(userID, token); err != nil {
 		b.logger.Errorf("Error while saving Oauth token: %s", err.Error())

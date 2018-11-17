@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/botmanager"
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/calendarmanager"
@@ -14,7 +13,6 @@ import (
 	"github.com/blablapolicja/google-calendar-telegram-bot/internal/repositories"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -61,8 +59,8 @@ func main() {
 	messageParser := botmanager.NewMessageParser()
 	messageComposer := botmanager.NewMessageComposer()
 	calendarManager := calendarmanager.NewCalendarManager(googleOauthConfig)
-	unauthorizedUsersCache := cache.New(time.Minute, 5*time.Minute)
 	tokenRepository := repositories.NewTokenRepository(redisClient)
+	userIDRepository := repositories.NewUserIDRepository(redisClient)
 	botManager := botmanager.NewBotManager(
 		config.BotConfig,
 		botManagerLogger,
@@ -70,7 +68,7 @@ func main() {
 		messageParser,
 		messageComposer,
 		calendarManager,
-		unauthorizedUsersCache,
+		userIDRepository,
 		tokenRepository,
 	)
 
