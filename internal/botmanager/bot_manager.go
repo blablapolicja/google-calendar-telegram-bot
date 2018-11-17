@@ -50,7 +50,6 @@ func NewBotManager(
 
 // Start starts Bot Manager
 func (b *BotManager) Start() error {
-	b.botAPI.Debug = config.BotConfig.Debug
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
@@ -60,7 +59,7 @@ func (b *BotManager) Start() error {
 		return err
 	}
 
-	b.logger.Infof("Authorized on account %s", b.botAPI.Self.UserName)
+	b.logger.Infof("Bot authorized on account %s", b.botAPI.Self.UserName)
 
 	for update := range updates {
 		if update.Message == nil {

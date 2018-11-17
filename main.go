@@ -33,6 +33,16 @@ func main() {
 		log.Fatalf("Can't create new bot API: %s", err.Error())
 	}
 
+	botAPI.Debug = config.BotConfig.Debug
+
+	if botAPI.Debug {
+		botLogger := log.WithField("logger", "bot")
+
+		if err := tgbotapi.SetLogger(botLogger); err != nil {
+			log.Fatalf("Can't set bot logger: %s", err.Error())
+		}
+	}
+
 	dbConnection, err := database.NewDatabaseConn(config.DatabaseConfig)
 
 	if err != nil {
