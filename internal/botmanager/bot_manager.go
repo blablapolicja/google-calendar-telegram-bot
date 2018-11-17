@@ -75,8 +75,9 @@ func (b *BotManager) handleMessage(m *tgbotapi.Message) {
 	operation := b.messageParser.ParseMessage(m)
 
 	switch operation.operationType {
-	case Authorise:
+	case authorise:
 		b.startAuth(operation.userID)
+	case unknown:
 	default:
 		b.sendDefaultResponse(operation.userID)
 	}
@@ -124,10 +125,12 @@ func (b *BotManager) FinishAuth(state string, code string) {
 
 	message := tgbotapi.NewMessage(userID, "You have been successfully authorized!")
 
-	// TODO: add error handling
-	b.botAPI.Send(message)
-	b.logger.Infof("User %d has been authorized", userID)
+	if _, err := b.botAPI.Send(message); err != nil {
+		b.logger.Errorf("Error while sending authorization message to user %s", err.Error())
+		return
+	}
 
+	b.logger.Infof("User %d has been authorized", userID)
 	b.sendCalendarEvents(userID, token)
 }
 
@@ -135,26 +138,28 @@ func (b *BotManager) sendCalendarEvents(userID int64, token *oauth2.Token) {
 	calendarClient, err := b.calendarManager.CreateClient(token)
 
 	if err != nil {
-		b.logger.Errorf("Can't create Google Calendar client for user %d", userID)
+		b.logger.Errorf("Can't create Google Calendar client for user %s", err.Error())
 		return
 	}
 
 	events, err := b.calendarManager.GetCalendarEvents(calendarClient)
 
 	if err != nil {
-		b.logger.Errorf("Error while getting calendar events for user %d", userID)
+		b.logger.Errorf("Error while getting calendar events for user %s", err.Error())
 		return
 	}
 
 	message := b.messageComposer.CreateEventsList(userID, events.Items)
 
-	// TODO: add error handling
-	b.botAPI.Send(message)
+	if _, err := b.botAPI.Send(message); err != nil {
+		b.logger.Errorf("Error while sending calendar events to user %s", err.Error())
+	}
 }
 
 func (b *BotManager) sendDefaultResponse(userID int64) {
 	message := tgbotapi.NewMessage(userID, "I'm not sure I know what do you want")
 
-	// TODO: add error handling
-	b.botAPI.Send(message)
+	if _, err := b.botAPI.Send(message); err != nil {
+		b.logger.Errorf("Error while sending default response to user %s", err.Error())
+	}
 }

@@ -15,7 +15,7 @@ func NewMessageComposer() *messageComposer {
 }
 
 // CreateEventsList creates message with Google Calendar events
-func (c *messageComposer) CreateEventsList(userID int64, events []*calendar.Event) tgbotapi.MessageConfig {
+func (messageComposer) CreateEventsList(userID int64, events []*calendar.Event) tgbotapi.MessageConfig {
 	var buffer bytes.Buffer
 
 	buffer.WriteString("Your nearest events:\n\n")

@@ -13,10 +13,8 @@ func newOperation(operationType int, userID int64) *Operation {
 }
 
 const (
-	// Authorise - command for authorizing client
-	Authorise = 0
-	// Unknown - command to identify unknown Bot command from user
-	Unknown = 666
+	authorise = 0
+	unknown = 666
 )
 
 type messageParser struct{}
@@ -32,15 +30,15 @@ const (
 )
 
 // ParseMessage parses message from user
-func (mp *messageParser) ParseMessage(m *tgbotapi.Message) *Operation {
+func (messageParser) ParseMessage(m *tgbotapi.Message) *Operation {
 	if m.IsCommand() {
 		switch m.Command() {
 		case start:
-			return newOperation(Authorise, m.Chat.ID)
+			return newOperation(authorise, m.Chat.ID)
 		default:
-			return newOperation(Unknown, m.Chat.ID)
+			return newOperation(unknown, m.Chat.ID)
 		}
 	}
 
-	return newOperation(Unknown, m.Chat.ID)
+	return newOperation(unknown, m.Chat.ID)
 }

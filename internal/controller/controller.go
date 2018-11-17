@@ -27,13 +27,15 @@ func (c *Controller) HandleOauthCallback(w http.ResponseWriter, r *http.Request)
 		state := query["state"]
 		code := query["code"]
 
-		c.logger.Printf("Oauth callback is called with code %s and state %s", code, state)
-
-		if len(state) == 1 && len(code) == 1 {
-			c.botManager.FinishAuth(query["state"][0], query["code"][0])
+		if len(state) != 1 || len(code) != 1 {
+			c.logger.Warnf("Oauth callback was called with code %s and state %s", code, state)
+			http.Error(w, "", http.StatusBadRequest)
+			return
 		}
+
+		c.botManager.FinishAuth(query["state"][0], query["code"][0])
 	default:
-		c.logger.Warnf("HandleOauthCallback was called with wrong method: %s", r.Method)
+		c.logger.Warnf("Oauth callback was called with wrong method: %s", r.Method)
 		http.Error(w, "", http.StatusMethodNotAllowed)
 	}
 }
