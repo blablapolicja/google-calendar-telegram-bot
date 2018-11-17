@@ -22,6 +22,8 @@ import (
 func main() {
 	log.SetOutput(os.Stdout)
 
+	mainLogger := log.WithField("logger", "main")
+
 	if err := config.Init(); err != nil {
 		log.Fatalf("Can't init config: %s", err.Error())
 	}
@@ -31,6 +33,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't create new bot API: %s", err.Error())
 	}
+
+	mainLogger.Info("Bot API initialized")
 
 	botAPI.Debug = config.BotConfig.Debug
 
@@ -47,6 +51,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't create Redis client: %s", err.Error())
 	}
+
+	mainLogger.Infof("Redis client initialized on address: %s", config.RedisConfig.Address)
 
 	googleOauthConfig := &oauth2.Config{
 		ClientID:     config.OauthConfig.ClientID,
