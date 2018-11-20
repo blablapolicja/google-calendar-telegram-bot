@@ -18,7 +18,7 @@ func NewMessageComposer() *messageComposer {
 func (messageComposer) CreateEventsList(userID int64, events []*calendar.Event) tgbotapi.MessageConfig {
 	var buffer bytes.Buffer
 
-	buffer.WriteString("Your nearest events:\n\n")
+	buffer.WriteString("Your events:\n\n")
 
 	for _, event := range events {
 		date := event.Start.DateTime

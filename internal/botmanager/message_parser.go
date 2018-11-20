@@ -6,15 +6,28 @@ import "github.com/go-telegram-bot-api/telegram-bot-api"
 type Operation struct {
 	operationType int
 	userID        int64
+	needAuth      bool
+	params        interface{}
 }
 
-func newOperation(operationType int, userID int64) *Operation {
-	return &Operation{operationType, userID}
+func newOperation(operationType int, userID int64, needAuth bool, params interface{}) *Operation {
+	return &Operation{operationType, userID, needAuth, params}
 }
 
 const (
-	authorise = 0
-	unknown = 666
+	// operation types
+	operationAuthorise = 0
+	operationEvents    = 1
+	operationUnknown   = 666
+
+	// commands available for users
+	commandStart = "start"
+	commandList  = "list"
+
+	// arguments for commands
+	argumentDay   = "day"
+	argumentWeek  = "week"
+	argumentMonth = "month"
 )
 
 type messageParser struct{}
@@ -24,21 +37,14 @@ func NewMessageParser() *messageParser {
 	return &messageParser{}
 }
 
-// commands available in Bot
-const (
-	start = "start"
-)
-
 // ParseMessage parses message from user
-func (messageParser) ParseMessage(m *tgbotapi.Message) *Operation {
-	if m.IsCommand() {
-		switch m.Command() {
-		case start:
-			return newOperation(authorise, m.Chat.ID)
-		default:
-			return newOperation(unknown, m.Chat.ID)
-		}
+func (p *messageParser) ParseMessage(m *tgbotapi.Message) *Operation {
+	switch command := m.CommandWithAt(); command {
+	case commandStart:
+		return newOperation(operationAuthorise, m.Chat.ID, false, nil)
+	case commandList:
+		return newOperation(operationEvents, m.Chat.ID, true, m.CommandArguments())
+	default:
+		return newOperation(operationUnknown, m.Chat.ID, false, nil)
 	}
-
-	return newOperation(unknown, m.Chat.ID)
 }

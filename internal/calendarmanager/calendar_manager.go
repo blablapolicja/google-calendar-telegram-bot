@@ -7,6 +7,12 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
+const (
+	intervalDay   = "day"
+	intervalWeek  = "week"
+	intervalMonth = "month"
+)
+
 // CalendarManager represents Calendar Manager
 type CalendarManager struct {
 	config *oauth2.Config
@@ -19,7 +25,7 @@ func NewCalendarManager(config *oauth2.Config) *CalendarManager {
 
 // CreateAuthCodeURL - authorize user
 func (m *CalendarManager) CreateAuthCodeURL(state string) string {
-	return m.config.AuthCodeURL(state)
+	return m.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
 }
 
 // CreateToken creates oauth2 token from code
@@ -34,8 +40,38 @@ func (m *CalendarManager) CreateClient(token *oauth2.Token) (*calendar.Service, 
 	return calendar.New(httpClient)
 }
 
-func (m *CalendarManager) GetCalendarEvents(calendarClient *calendar.Service) (*calendar.Events, error) {
-	t := time.Now().Format(time.RFC3339)
+// GetCalendarEvents returns events from Calendar
+func (m *CalendarManager) GetCalendarEvents(calendarClient *calendar.Service, params interface{}) (*calendar.Events, error) {
+	switch params.(type) {
+	case string:
+		return m.getCalendarEventsByInterval(calendarClient, params.(string))
+	}
 
-	return calendarClient.Events.List("primary").ShowDeleted(false).SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
+	return m.getNearestEvents(calendarClient)
+}
+
+func (m *CalendarManager) getNearestEvents(calendarClient *calendar.Service) (*calendar.Events, error) {
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Format(time.RFC3339)
+
+	return calendarClient.Events.List("primary").ShowDeleted(false).SingleEvents(true).TimeMin(startOfDay).MaxResults(10).OrderBy("startTime").Do()
+}
+
+func (m *CalendarManager) getCalendarEventsByInterval(calendarClient *calendar.Service, interval string) (*calendar.Events, error) {
+	var timeMax string
+	now := time.Now()
+	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	switch interval {
+	case intervalDay:
+		timeMax = startOfDay.AddDate(0, 0, 1).Format(time.RFC3339)
+	case intervalWeek:
+		timeMax = startOfDay.AddDate(0, 0, 7).Format(time.RFC3339)
+	case intervalMonth:
+		timeMax = startOfDay.AddDate(0, 1, 0).Format(time.RFC3339)
+	default:
+		return m.getNearestEvents(calendarClient)
+	}
+
+	return calendarClient.Events.List("primary").ShowDeleted(false).SingleEvents(true).TimeMin(startOfDay.Format(time.RFC3339)).TimeMax(timeMax).OrderBy("startTime").Do()
 }

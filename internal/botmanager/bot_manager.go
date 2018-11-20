@@ -74,10 +74,32 @@ func (b *BotManager) Start() error {
 func (b *BotManager) handleMessage(m *tgbotapi.Message) {
 	operation := b.messageParser.ParseMessage(m)
 
-	switch operation.operationType {
-	case authorise:
+	if !operation.needAuth {
+		switch operation.operationType {
+		case operationAuthorise:
+			b.startAuth(operation.userID)
+		case operationUnknown:
+		default:
+			b.sendDefaultResponse(operation.userID)
+		}
+		return
+	}
+
+	token, err := b.tokenRepository.Get(operation.userID)
+
+	if err == redis.Nil {
 		b.startAuth(operation.userID)
-	case unknown:
+		return
+	}
+
+	if err != nil {
+		b.logger.Errorf("Error while getting user ID: %s", err.Error())
+		return
+	}
+
+	switch operation.operationType {
+	case operationEvents:
+		b.sendCalendarEvents(operation.userID, token, operation.params)
 	default:
 		b.sendDefaultResponse(operation.userID)
 	}
@@ -123,7 +145,7 @@ func (b *BotManager) FinishAuth(state string, code string) {
 	token, err := b.calendarManager.CreateToken(code)
 
 	if err != nil {
-		b.logger.Errorf("Error while getting Oauth token: %s", err.Error())
+		b.logger.Errorf("Error while creating Oauth token: %s", err.Error())
 		return
 	}
 
@@ -140,10 +162,10 @@ func (b *BotManager) FinishAuth(state string, code string) {
 	}
 
 	b.logger.Infof("User %d has been authorized", userID)
-	b.sendCalendarEvents(userID, token)
+	b.sendCalendarEvents(userID, token, nil)
 }
 
-func (b *BotManager) sendCalendarEvents(userID int64, token *oauth2.Token) {
+func (b *BotManager) sendCalendarEvents(userID int64, token *oauth2.Token, params interface{}) {
 	calendarClient, err := b.calendarManager.CreateClient(token)
 
 	if err != nil {
@@ -151,7 +173,7 @@ func (b *BotManager) sendCalendarEvents(userID int64, token *oauth2.Token) {
 		return
 	}
 
-	events, err := b.calendarManager.GetCalendarEvents(calendarClient)
+	events, err := b.calendarManager.GetCalendarEvents(calendarClient, params)
 
 	if err != nil {
 		b.logger.Errorf("Error while getting calendar events for user %s", err.Error())
