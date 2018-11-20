@@ -108,8 +108,7 @@ func (b *BotManager) handleMessage(m *tgbotapi.Message) {
 func (b *BotManager) startAuth(userID int64) {
 	state := util.GenerateStateString()
 	authURL := b.calendarManager.CreateAuthCodeURL(state)
-	message := tgbotapi.NewMessage(userID, "Open this [link]("+authURL+") to connect your Google Calendar (link will expire in 1 minute)")
-	message.ParseMode = tgbotapi.ModeMarkdown
+	message := b.messageComposer.CreateAuthMessage(userID, authURL)
 
 	if err := b.userIDRepository.Save(state, userID); err != nil {
 		b.logger.Errorf("Error while saving user ID %s", err.Error())
