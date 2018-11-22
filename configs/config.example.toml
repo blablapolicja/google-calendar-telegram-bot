@@ -1,0 +1,16 @@
+[redis]
+address = "127.0.0.1:6379"
+password = "redis_password"
+database = 0
+
+[server]
+port = 8080
+
+[bot]
+token = "telegram_bot_token"
+debug = true
+
+[oauth]
+client_id = "google_console_client_id"
+client_secret = "google_console_client_secret"
+redirect_url = "http://127.0.0.1:8080/oauthCallback"
