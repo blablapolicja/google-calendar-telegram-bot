@@ -6,4 +6,4 @@ stages:
 build:
   stage: build
   script:
-    - go build /builds/blablapolicja/google-calendar-telegram-bot/cmd/google-calendar-telegram-bot/main.go
+    - go build ${CI_PROJECT_DIR}/cmd/google-calendar-telegram-bot/main.go
