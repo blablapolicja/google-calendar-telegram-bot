@@ -26,5 +26,5 @@ staging:
     name: Staging
     url: https://google-calendar-telegram-bot.herokuapp.com/
   only:
-  - master
+    - dev
 
