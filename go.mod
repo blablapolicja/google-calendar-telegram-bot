@@ -1,5 +1,7 @@
 module github.com/blablapolicja/google-calendar-telegram-bot
 
+// +heroku install ./cmd/bot/main.go
+
 require (
 	cloud.google.com/go v0.33.1 // indirect
 	github.com/BurntSushi/toml v0.3.1 // indirect
