@@ -7,7 +7,7 @@ stages:
 test:
   stage: test
   script:
-    - go vet ${CI_PROJECT_DIR}
+    - go vet ${CI_PROJECT_DIR}/cmd/bot/main.go
 
 build:
   stage: build
