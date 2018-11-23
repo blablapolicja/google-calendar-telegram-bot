@@ -1,1 +1,1 @@
-web: go run ./cmd/bot/main.go
+web: echo $(pwd)
