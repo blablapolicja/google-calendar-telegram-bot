@@ -1,1 +1,1 @@
-web: google-calendar-telegram-bot
+web: go run ./cmd/bot/main.go
