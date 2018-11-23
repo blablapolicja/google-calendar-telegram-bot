@@ -3,6 +3,7 @@ image: golang:latest
 stages:
   - test
   - build
+  - deploy
 
 test:
   stage: test
@@ -13,3 +14,17 @@ build:
   stage: build
   script:
     - go build ${CI_PROJECT_DIR}/cmd/bot/main.go
+
+staging:
+  type: deploy
+  script:
+  - apt-get update -qy
+  - apt-get install -y ruby-dev
+  - gem install dpl
+  - dpl --provider=heroku --app=google-calendar-telegram-bot --api-key=$HEROKU_API_KEY
+  environment:
+    name: Staging
+    url: https://google-calendar-telegram-bot.herokuapp.com/
+  only:
+  - master
+
