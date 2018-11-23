@@ -1,0 +1,9 @@
+image: golang:1.12.2
+
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - go build ./cmd/google-calendar-telegram-bot/main.go
