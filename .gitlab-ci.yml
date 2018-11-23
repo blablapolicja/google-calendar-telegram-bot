@@ -1,7 +1,13 @@
 image: golang:latest
 
 stages:
+  - test
   - build
+
+test:
+  stage: test
+  script:
+    - go vet ${CI_PROJECT_DIR}
 
 build:
   stage: build
