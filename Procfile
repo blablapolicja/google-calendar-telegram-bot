@@ -1,1 +1,1 @@
-web: echo $(pwd)
+web: echo $(pwd) && echo $(ls) && app/bin/google-calendar-telegram-bot
