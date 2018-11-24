@@ -22,10 +22,6 @@ import (
 func main() {
 	log.SetOutput(os.Stdout)
 
-	env := os.Getenv("LOL")
-
-	log.Info("lol", env)
-
 	mainLogger := log.WithField("logger", "main")
 
 	if err := config.Init(); err != nil {

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
+echo ${CONFIG}
 echo ${CONFIG} >> ./configs/config.toml
-ls ./configs
 ./bin/main
