@@ -1,1 +1,1 @@
-web: echo (${CONFIG}) && ./bin/main
+web: ./build-heroku.sh
