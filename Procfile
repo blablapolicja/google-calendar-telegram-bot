@@ -1,1 +1,1 @@
-web: ./bin/main
+web: echo (${CONFIG}) && ./bin/main
