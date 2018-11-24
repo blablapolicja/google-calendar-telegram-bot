@@ -2,18 +2,12 @@ image: golang:1.11.2
 
 stages:
   - test
-  - build
   - deploy
 
 test:
   stage: test
   script:
     - go vet ${CI_PROJECT_DIR}/cmd/bot/main.go
-
-build:
-  stage: build
-  script:
-    - go build ${CI_PROJECT_DIR}/cmd/bot/main.go
 
 staging:
   type: deploy
