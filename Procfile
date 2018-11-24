@@ -1,1 +1,1 @@
-web: ./build-heroku.sh
+web: bash ./build-heroku.sh
